@@ -19,9 +19,9 @@ from level import Level
 from notifier_proxy import NotifierProxy
 from pagerduty_notifier import PagerdutyNotifier
 from redis_storage import RedisStorage
+from console_notifier import ConsoleNotifier
 
-GRAPHITE_URL = os.getenv('GRAPHITE_URL')
-
+options = {}
 
 ALERT_TEMPLATE = r"""{{level}} alert for {{alert.name}} {{record.target}}.  The
 current value is {{current_value}} which passes the {{threshold_level|lower}} value of
@@ -36,7 +36,7 @@ The current value is {{current_value}} which passes the {{threshold_level|lower}
 
 def description_for_alert(template, alert, record, level, current_value):
     context = dict(locals())
-    context['graphite_url'] = GRAPHITE_URL
+    context['graphite_url'] = options['GRAPHITE_URL']
     context['docs_url'] = alert.documentation_url(record.target)
     url_params = (
         ('width', 586),
@@ -47,7 +47,7 @@ def description_for_alert(template, alert, record, level, current_value):
         ('from', '-20mins'),
     )
     url_args = urlencode(url_params)
-    url = '{}/render/?{}'.format(GRAPHITE_URL, url_args)
+    url = '{}/render/?{}'.format(options['GRAPHITE_URL'], url_args)
     context['graph_url'] = url.replace('https', 'http')
     context['threshold_value'] = alert.value_for_level(level)
     if level == Level.NOMINAL:
@@ -88,17 +88,16 @@ def update_notifiers(notifier_proxy, alert, record):
 
     notifier_proxy.notify(alert_key, alert_level, description, html_description)
 
-def create_notifier_proxy():
-    STORAGE = RedisStorage(redis, os.getenv('REDISTOGO_URL'))
-
-    pg_key = os.getenv('PAGERDUTY_KEY')
-    pagerduty_client = PagerDuty(pg_key)
-
+def create_notifier_proxy(args):
+    STORAGE = RedisStorage(redis, args.redisurl)
+    pagerduty_client = PagerDuty(args.pagerduty_key)   
 
     notifier_proxy = NotifierProxy()
-    notifier_proxy.add_notifier(
-        PagerdutyNotifier(pagerduty_client, STORAGE))
 
+    notifier_proxy.add_notifier(ConsoleNotifier(STORAGE))  
+
+    if args.pagerduty_key:
+        notifier_proxy.add_notifier(PagerdutyNotifier(pagerduty_client, STORAGE))
 
     if 'HIPCHAT_KEY' in os.environ:
         hipchat = HipchatNotifier(HipChat(os.getenv('HIPCHAT_KEY')), STORAGE)
@@ -113,20 +112,27 @@ def get_args_from_cli():
     parser.add_argument('--config', metavar='config', type=str, nargs=1, default='alerts.yml', help='path to the config file')
     parser.add_argument('command', nargs='?', choices=['run', 'verify'], default='run', help='What action to take')
 
+    parser.add_argument('--redisurl', metavar='redisurl', type=str, nargs=1, default='redis://localhost:6379', help='redis host')
+    parser.add_argument('--pagerduty-key', metavar='pagerduty_key', type=str, nargs=1, default='', help='pagerduty key')
+    parser.add_argument('--graphite-url', metavar='graphite_url', type=str, nargs=1, 
+                            default='http://localhost:8080', help='graphite url')
     args = parser.parse_args()
     return args
 
-def load_alerts(location):
-    alerts = get_alerts(location)
-    return alerts
+notifier_proxy = NotifierProxy()
+
 
 def run():
-    args = get_args_from_cli()
-    alerts = load_alerts(args.config[0])
+    args = get_args_from_cli()    
     if 'verify'in args.command:
         print 'Valid configuration, good job!'
         return
-    notifier_proxy = create_notifier_proxy()
+
+    options['GRAPHITE_URL'] = args.graphite_url
+    
+    notifier_proxy = create_notifier_proxy(args)
+
+    alerts = get_alerts(args.config[0])
     while True:
         start_time = time.time()
         seen_alert_targets = set()
@@ -134,7 +140,7 @@ def run():
             target = alert.target
             try:
                 records = get_records(
-                   GRAPHITE_URL,
+                   options['GRAPHITE_URL'],
                    requests.get,
                    GraphiteDataRecord,
                    target,
