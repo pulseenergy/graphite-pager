@@ -91,9 +91,6 @@ def update_notifiers(settings, notifier_proxy, alert, record):
 
     description = Description(ALERT_TEMPLATE, alert, record, alert_level, value, settings['graphite_url'])
     html_description = Description(HTML_ALERT_TEMPLATE, alert, record, alert_level, value, settings['graphite_url'])
-    if alert_level != Level.NOMINAL:
-        print description
-
     notifier_proxy.notify(alert_key, alert_level, description, html_description)
 
 def create_notifier_proxy(settings):
