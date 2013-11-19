@@ -14,6 +14,7 @@ class Alert(object):
         self.critical = alert_data['critical']
         self.from_ = alert_data.get('from', '-1min')
         self.exclude = set(alert_data.get('exclude', []))
+        self.check_method = alert_data.get('check_method', 'latest')
 
         self.comparison_operator = self._determine_comparison_operator(self.warning, self.critical)
         self._doc_url = doc_url
@@ -37,8 +38,11 @@ class Alert(object):
     def check_record(self, record):
         if record.target in self.exclude:
             return Level.NOMINAL, 'Excluded'
-        try:
-            value = record.get_last_value()
+        try:            
+            if self.check_method == 'latest':
+                value = record.get_last_value()
+            else:
+                value = record.get_average()
         except NoDataError:
             return Level.NO_DATA, 'No data'
         if self.comparison_operator(value, self.critical):
