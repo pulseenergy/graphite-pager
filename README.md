@@ -21,17 +21,16 @@ Pager Duty alerts if a metric reaches a warning or critical level.
 
 ## Requirements
 
-* PagerDuty account
 * Graphite
 
 ## Notifiers
 
 Notifiers are what communicate with your preferred alerting service. Currently
-PagerDuty is required and HipChat is optional.
+PagerDuty and HipChat are both optional.
 
-PagerDuty requires an application key set in the environment as `PAGERDUTY_KEY`
+PagerDuty requires an application key set in config file as `pagerduty_key`
 
-HipChat requires an application key `HIPCHAT_KEY` and the room to notify `HIPCHAT_ROOM`
+HipChat requires an application key `hipchat_key` and the room to notify `hipchat_room` set in config file
 
 More notifiers are easy to write, file an issue if there is something you would like!
 
@@ -43,22 +42,15 @@ https://github.com/philipcristiano/graphite-pager-heroku-example.
 
 1. Install the package with Pip
 
-`pip install -e git://github.com/philipcristiano/graphite-pager.git#egg=graphitepager`
+`pip install -e git://github.com/pulseenergy/graphite-pager.git#egg=graphitepager`
 
-2.  Set Environment variables
-```
-    GRAPHITE_USER=HTTP-basic username
-    GRAPHITE_PASS=HTTP-basic password
-    GRAPHITE_URL=HTTPS(hopefully) URL to your Graphite installation
-    PAGERDUTY_KEY=Specific PagerDuty application key
-```
-3. Set up alerts in the `alerts.yml` file
+2. Set up the alerts and settings in the `config.yml` file
 
-4. Run `graphite-pager`
+3. Run `graphite-pager`
 
-    graphite-pager --config alerts.yml
+    graphite-pager --config config.yml
 
-Where the file `alerts.yml` is in the following format.
+Where the file `config.yml` is in the following format.
 
 # Configuration of Alerts
 
@@ -105,8 +97,8 @@ trigger the alert.
 Optional argument:
 
     from - The Graphite `from` parameter for how long to query for ex. `-10min` default `-1min`
-
     exclude - A list of targets to include. This must match the full target so it is recommended that you use the Graphite function alias() to make these readable.
+    ignore_no_data - Doesn't issue alerts if there is no data
 
 ### Ordering of Alerts
 

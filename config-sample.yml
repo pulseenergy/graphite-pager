@@ -13,5 +13,4 @@ alerts:
       name: system load
       from: -10min
       check_method: average
-      notifiers: ['mail', 'pagerduty']
       
