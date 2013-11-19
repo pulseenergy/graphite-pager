@@ -27,7 +27,8 @@ default_settings = {'graphite_url' : 'http://localhost:8080',
                     'redisurl' : 'redis://localhost:6379',
                     'pagerduty_key': '',
                     'hipchat_key': '',
-                    'hipchat_room': ''};
+                    'hipchat_room': '',
+                    'interval_seconds': 60};
 
 ALERT_TEMPLATE = r"""{{level}} alert for {{alert.name}} {{record.target}}.  The
 current value is {{current_value}} which passes the {{threshold_level|lower}} value of
@@ -193,11 +194,13 @@ def run():
                 else:
                     print 'Seen', (name, target)
         time_diff = time.time() - start_time
-        sleep_for = 60 - time_diff
-        if sleep_for > 0:
-            sleep_for = 60 - time_diff
-            print 'Sleeping for {0} seconds at'.format(sleep_for), datetime.datetime.utcnow()
-            time.sleep(60 - time_diff)
+        if settings['interval_seconds'] > 0:
+            sleep_for = settings['interval_seconds'] - time_diff
+            if sleep_for > 0:
+                print 'Sleeping for {0} seconds at'.format(sleep_for), datetime.datetime.utcnow()
+                time.sleep(sleep_for)
+        else:
+            break
 
 if __name__ == '__main__':
     run()
