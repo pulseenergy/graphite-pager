@@ -16,7 +16,7 @@ def run_setup():
         author='Philip Cristiano',
         author_email='philipcristiano@gmail.com',
         license='BSD',
-        packages=['graphitepager'],
+        packages=['graphitepager', 'graphitepager.notifiers'],
         install_requires=[
             'Jinja2==2.6',
             'PyYAML==3.10',
