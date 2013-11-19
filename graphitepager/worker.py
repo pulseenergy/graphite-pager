@@ -90,6 +90,9 @@ def update_notifiers(settings, notifier_proxy, alert, record):
     alert_key = '{} {}'.format(alert.name, record.target)
     alert_level, value = alert.check_record(record)
 
+    if alert_level == Level.NO_DATA and alert.ignore_no_data:
+        print 'No Data - skipping'
+        return
     description = Description(ALERT_TEMPLATE, alert, record, alert_level, value, settings['graphite_url'])
     html_description = Description(HTML_ALERT_TEMPLATE, alert, record, alert_level, value, settings['graphite_url'])
     notifier_proxy.notify(alert_key, alert_level, description, html_description)

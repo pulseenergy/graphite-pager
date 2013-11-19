@@ -16,6 +16,7 @@ class Alert(object):
         self.check_method = alert_data.get('check_method', 'latest')
         self.notifiers = alert_data.get('notifiers', [])        
         self.notifiers += ['console']        
+        self.ignore_no_data = alert_data['ignore_no_data']
         
         self.comparison_operator = self._determine_comparison_operator(self.warning, self.critical)
         self._doc_url = doc_url
