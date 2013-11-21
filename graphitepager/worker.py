@@ -49,14 +49,14 @@ def description_for_alert(template, alert, record, level, current_value, graphit
     url_params = (
         ('width', 586),
         ('height', 308),
-        ('target', alert.target),
+        ('target', record.target),
         ('target', 'threshold({},"Warning")'.format(alert.warning)),
         ('target', 'threshold({},"Critical")'.format(alert.critical)),
         ('from', '-20mins'),
     )
     url_args = urlencode(url_params)
     url = '{}/render/?{}'.format(graphite_url, url_args)
-    context['graph_url'] = url.replace('https', 'http')
+    context['graph_url'] = url
     context['threshold_value'] = alert.value_for_level(level)
     if level == Level.NOMINAL:
         context['threshold_level'] = 'warning'
