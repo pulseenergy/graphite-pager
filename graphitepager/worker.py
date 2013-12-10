@@ -52,7 +52,7 @@ def description_for_alert(template, alert, record, level, current_value, graphit
         ('target', record.target),
         ('target', 'threshold({},"Warning")'.format(alert.warning)),
         ('target', 'threshold({},"Critical")'.format(alert.critical)),
-        ('from', '-20mins'),
+        ('from', alert.from_)
     )
     url_args = urlencode(url_params)
     url = '{}/render/?{}'.format(graphite_url, url_args)
