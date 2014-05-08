@@ -4,9 +4,10 @@ class HipchatNotifier(object):
 
     name = 'hipchat'
 
-    def __init__(self, client, storage):
+    def __init__(self, client, storage, hipchat_notify = False):
         self._client = client
         self._storage = storage
+        self._hipchat_notify = hipchat_notify
         self._rooms = set()
 
     def notify(self, alert_key, level, description, html_description):
@@ -25,6 +26,7 @@ class HipchatNotifier(object):
                 description,
                 message_format='html',
                 color=color,
+                notify = self._hipchat_notify
             )
 
         notified = self._storage.is_locked_for_domain_and_key(domain, alert_key)

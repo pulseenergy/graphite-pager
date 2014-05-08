@@ -108,7 +108,7 @@ def create_notifier_proxy(settings):
         notifier_proxy.add_notifier(PagerdutyNotifier(pagerduty_client, STORAGE))
 
     if settings['hipchat_key']:
-        hipchat = HipchatNotifier(HipChat(settings['hipchat_key']), STORAGE)
+        hipchat = HipchatNotifier(HipChat(settings['hipchat_key']), STORAGE, settings.get('hipchat_notify', False))
         hipchat.add_room(settings['hipchat_room'])
         notifier_proxy.add_notifier(hipchat)
     return notifier_proxy
