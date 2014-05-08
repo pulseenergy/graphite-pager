@@ -4,7 +4,7 @@ from mock import patch, MagicMock
 from hipchat import HipChat
 
 
-from graphitepager.hipchat_notifier import HipchatNotifier
+from graphitepager.notifiers.hipchat import HipchatNotifier
 from graphitepager.redis_storage import RedisStorage
 from graphitepager.level import Level
 
@@ -47,6 +47,7 @@ class TestHipChatNotifier(TestCase):
             self.html_description,
             message_format='html',
             color='green',
+            notify=False
         )
         self.mock_redis_storage.remove_lock_for_domain_and_key.assert_called_once_with(
             'HipChat', self.alert_key)
@@ -63,7 +64,8 @@ class TestHipChatNotifier(TestCase):
             'Graphite-Pager',
             self.html_description,
             message_format='html',
-            color='yellow'
+            color='yellow',
+            notify=False
         )
         self.mock_redis_storage.set_lock_for_domain_and_key.assert_called_once_with(
             'HipChat', self.alert_key)
@@ -80,7 +82,8 @@ class TestHipChatNotifier(TestCase):
             'Graphite-Pager',
             self.html_description,
             message_format='html',
-            color='red'
+            color='red',
+            notify=False
         )
         self.mock_redis_storage.set_lock_for_domain_and_key.assert_called_once_with(
             'HipChat', self.alert_key)
@@ -97,7 +100,27 @@ class TestHipChatNotifier(TestCase):
             'Graphite-Pager',
             self.html_description,
             message_format='html',
-            color='red'
+            color='red',
+            notify=False
+        )
+        self.mock_redis_storage.set_lock_for_domain_and_key.assert_called_once_with(
+            'HipChat', self.alert_key)
+
+    def test_adds_hipchat_notification_if_set(self):
+        noisy_hcn = HipchatNotifier(self.mock_hipchat_client, self.mock_redis_storage, hipchat_notify = True)
+        room_name = 'ROOM NAME'
+        noisy_hcn.add_room(room_name)
+        self.mock_redis_storage.is_locked_for_domain_and_key.return_value = False
+
+        noisy_hcn.notify(self.alert_key, Level.CRITICAL, self.description, self.html_description)
+
+        self.mock_hipchat_client.message_room.assert_called_once_with(
+            room_name,
+            'Graphite-Pager',
+            self.html_description,
+            message_format='html',
+            color='red',
+            notify=True
         )
         self.mock_redis_storage.set_lock_for_domain_and_key.assert_called_once_with(
             'HipChat', self.alert_key)

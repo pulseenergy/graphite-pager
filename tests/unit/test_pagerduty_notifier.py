@@ -4,7 +4,7 @@ from unittest import TestCase
 from mock import patch, MagicMock
 from pagerduty import PagerDuty
 
-from graphitepager.pagerduty_notifier import PagerdutyNotifier
+from graphitepager.notifiers.pagerduty import PagerdutyNotifier
 from graphitepager.redis_storage import RedisStorage
 from graphitepager.level import Level
 

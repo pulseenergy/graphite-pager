@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from mock import patch, Mock
 
-from graphitepager.alerts import contents_of_file
+from graphitepager.worker import contents_of_file
 
 
 class TestReadingFile(TestCase):
