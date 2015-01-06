@@ -34,6 +34,14 @@ ALERT_WITH_EXCLUDE = {
     'name': 'NAME',
     'exclude': ['exclude_1']
 }
+ALERT_WITH_EXCLUDE_WILDCARD = {
+    'target': 'TARGET',
+    'warning': 1,
+    'critical': 2,
+    'name': 'NAME',
+    'exclude': ['exclude*']
+}
+
 
 class _BaseTestCase(TestCase):
 
@@ -153,7 +161,7 @@ class TestAlertisExcluded(_BaseTestCase):
     def setUp(self):
         self.alert = Alert(ALERT_WITH_EXCLUDE)
 
-    def test_should_return_no_data_for_no_data(self):
+    def test_is_excluded(self):
         class Record(object):
             target = 'exclude_1'
             def get_last_value(self):
@@ -162,6 +170,39 @@ class TestAlertisExcluded(_BaseTestCase):
         level, value = self.alert.check_record(Record())
         self.assertEqual(level, Level.NOMINAL)
         self.assertEqual(value, 'Excluded')
+
+    def test_is_not_excluded(self):
+        class Record(object):
+            target = 'hello_1'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, 'NO DATA')
+
+class TestAlertisExcludedByWildcard(_BaseTestCase):
+
+    def setUp(self):
+        self.alert = Alert(ALERT_WITH_EXCLUDE_WILDCARD)
+
+    def test_is_excluded(self):
+        class Record(object):
+            target = 'exclude_1'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, Level.NOMINAL)
+        self.assertEqual(value, 'Excluded')
+
+    def test_is_not_excluded(self):
+        class Record(object):
+            target = 'hello_1'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, 'NO DATA')
 
 class TestValueForLevel(_BaseTestCase):
 

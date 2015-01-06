@@ -1,4 +1,5 @@
 import operator
+import re
 
 from graphite_data_record import NoDataError
 from level import Level
@@ -12,7 +13,7 @@ class Alert(object):
         self.warning = alert_data['warning']
         self.critical = alert_data['critical']
         self.from_ = alert_data.get('from', '-1min')
-        self.exclude = set(alert_data.get('exclude', []))
+        self.exclude = set([re.compile(x) for x in alert_data.get('exclude', [])])
         self.check_method = alert_data.get('check_method', 'latest')
         self.notifiers = alert_data.get('notifiers', [])        
         self.notifiers += ['console']        
@@ -20,6 +21,8 @@ class Alert(object):
         
         self.comparison_operator = self._determine_comparison_operator(self.warning, self.critical)
         self._doc_url = doc_url
+
+
 
     def documentation_url(self, target=None):
         if self._doc_url is None:
@@ -38,8 +41,10 @@ class Alert(object):
             return operator.ge
 
     def check_record(self, record):
-        if record.target in self.exclude:
-            return Level.NOMINAL, 'Excluded'
+        for pattern in self.exclude:
+            if pattern.match(record.target):
+                return Level.NOMINAL, 'Excluded'
+
         try:            
             if self.check_method == 'latest':
                 value = record.get_last_value()
