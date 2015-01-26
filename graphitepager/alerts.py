@@ -45,7 +45,7 @@ class Alert(object):
 
     def check_record(self, record):
         for pattern in self.exclude:
-            if pattern.match(record.target):
+            if pattern.search(record.target):
                 return Level.NOMINAL, 'Excluded'
 
         try:            
