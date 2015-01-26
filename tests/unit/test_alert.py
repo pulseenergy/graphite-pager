@@ -41,7 +41,20 @@ ALERT_WITH_EXCLUDE_WILDCARD = {
     'name': 'NAME',
     'exclude': ['exclude*']
 }
-
+ALERT_WITH_EXCLUDE_HEALTHCHECK = {
+    'target': 'TARGET',
+    'warning': 1,
+    'critical': 2,
+    'name': 'NAME',
+    'exclude': ['healthcheck\\.[^.]+-dead\\.']
+}
+ALERT_WITH_EXCLUDE_NONE = {
+    'target': 'TARGET',
+    'warning': 1,
+    'critical': 2,
+    'name': 'NAME',
+    'exclude': None
+}
 
 class _BaseTestCase(TestCase):
 
@@ -198,6 +211,44 @@ class TestAlertisExcludedByWildcard(_BaseTestCase):
     def test_is_not_excluded(self):
         class Record(object):
             target = 'hello_1'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, 'NO DATA')
+
+class TestAlertisExcludedByHealthcheck(_BaseTestCase):
+
+    def setUp(self):
+        self.alert = Alert(ALERT_WITH_EXCLUDE_HEALTHCHECK)
+
+    def test_is_excluded(self):
+        class Record(object):
+            target = 'healthcheck.tusapi3-dead.pulse_emis.healthy'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, Level.NOMINAL)
+        self.assertEqual(value, 'Excluded')
+
+    def test_is_not_excluded(self):
+        class Record(object):
+            target = 'healthcheck.tusapi3.pulse_emis.healthy'
+            def get_last_value(self):
+                raise NoDataError()
+
+        level, value = self.alert.check_record(Record())
+        self.assertEqual(level, 'NO DATA')
+
+class TestAlertHasExcludeNone(_BaseTestCase):
+
+    def setUp(self):
+        self.alert = Alert(ALERT_WITH_EXCLUDE_NONE)
+
+    def test_should_not_exclude(self):
+        class Record(object):
+            target = 'name'
             def get_last_value(self):
                 raise NoDataError()
 

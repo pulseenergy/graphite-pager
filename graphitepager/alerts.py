@@ -13,7 +13,10 @@ class Alert(object):
         self.warning = alert_data['warning']
         self.critical = alert_data['critical']
         self.from_ = alert_data.get('from', '-1min')
-        self.exclude = set([re.compile(x) for x in alert_data.get('exclude', [])])
+        if alert_data.get('exclude') is not None:
+            self.exclude = set(re.compile(x) for x in alert_data['exclude'])
+        else:
+            self.exclude = set()
         self.check_method = alert_data.get('check_method', 'latest')
         self.notifiers = alert_data.get('notifiers', [])        
         self.notifiers += ['console']        
