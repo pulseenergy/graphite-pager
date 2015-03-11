@@ -123,6 +123,14 @@ values
     worker nodes above 5
 
 
+## Developing
+
+    make virtualenv requirements
+    make test
+    source venv/bin/activate
+    python -m graphitepager.worker --config config.yml
+    deactivate
+
 ## TODO
 
 * Create a package

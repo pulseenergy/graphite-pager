@@ -1,7 +1,7 @@
 coverage
 mock
 nose
-requests
+requests==2.5.3
 redis
 sphinx
 -e git://github.com/lacostej/nosyd.git#egg=nosyd
